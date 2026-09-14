@@ -9,7 +9,7 @@ use crate::http::state::AppState;
 
 pub fn router(state: AppState) -> Router {
     Router::new()
-        .route("/healthz", get(health::health))
+        .route("/livez", get(health::live))
         .route("/readyz", get(health::ready))
         .route("/metrics", get(metrics::metrics))
         .layer(catch_panic::CatchPanicLayer::new())
