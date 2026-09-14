@@ -40,3 +40,23 @@ jobs:
 
       - name: Run Tests
         uses: ./.github/composite/test
+
+  buildAndDeployGrpcClientBeta:
+    name: Build and deploy gRPC client beta
+    runs-on: ubuntu-latest
+
+    needs: [test]
+
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Pipeline
+        uses: ./.github/composite/setup
+        with:
+          SECRETS: ${{ toJSON(secrets) }}
+
+      - name: Upload beta tag to NPM
+        run: bun run ./github/scripts/build/beta --sha=${{ github.event.pull_request.head.sha }} --prId=${{ github.event.pull_request.number }}

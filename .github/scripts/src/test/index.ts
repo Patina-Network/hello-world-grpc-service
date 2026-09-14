@@ -40,11 +40,4 @@ function parseCiEnv(ciEnv: Record<string, string | undefined>) {
   return { sonarToken };
 }
 
-main()
-  .then(() => {
-    process.exit(0);
-  })
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  });
+void main();
