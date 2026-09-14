@@ -21,6 +21,28 @@ impl GreeterService {
     }
 }
 
+fn greeting_response_from_greeting(
+    recipient_name: String,
+    greeting: db::Greeting,
+) -> GreetingResponse {
+    let db::Greeting {
+        id,
+        sender_name,
+        message,
+        timestamp,
+    } = greeting;
+    let std_time: SystemTime = timestamp.into();
+    let response_message = format!("{sender_name} says {message}");
+
+    GreetingResponse {
+        id,
+        message: response_message,
+        sender_name,
+        recipient_name,
+        received_at: Some(std_time.into()),
+    }
+}
+
 #[tonic::async_trait]
 impl greeter_service_server::GreeterService for GreeterService {
     async fn echo_hello(
@@ -38,7 +60,7 @@ impl greeter_service_server::GreeterService for GreeterService {
         }
 
         Ok(EchoHelloResponse {
-            response: format!("hello {name}"),
+            response: format!("server says hello, {name}!"),
         }
         .into())
     }
@@ -48,20 +70,19 @@ impl greeter_service_server::GreeterService for GreeterService {
         request: Request<SayGreetingRequest>,
     ) -> Result<Response<SayGreetingResponse>, Status> {
         let request = request.into_inner();
-        let recipient_name = request.recipient_name;
-        let sender_name = request.sender_name;
-        let message = request.greeting;
+
+        let SayGreetingRequest {
+            recipient_name,
+            sender_name,
+            greeting,
+        } = request;
 
         self.greetings_repo
-            .clone()
-            .add_new_greeting(
-                &recipient_name,
-                db::NewGreeting {
-                    recipient_name: recipient_name.clone(),
-                    sender_name,
-                    message,
-                },
-            )
+            .add_new_greeting(db::NewGreeting {
+                recipient_name,
+                sender_name,
+                message: greeting,
+            })
             .await;
 
         Ok(SayGreetingResponse {}.into())
@@ -75,45 +96,27 @@ impl greeter_service_server::GreeterService for GreeterService {
 
         match request.recipient_name.as_deref() {
             Some("") | None => {
-                let greetings = self.greetings_repo.get_all_greetings().await;
+                let replies = self
+                    .greetings_repo
+                    .get_all_greetings()
+                    .await
+                    .into_iter()
+                    .map(|(recipient_name, greeting)| {
+                        greeting_response_from_greeting(recipient_name, greeting)
+                    })
+                    .collect();
 
-                Ok(GreetingsResponse {
-                    replies: greetings
-                        .into_iter()
-                        .map(|g| {
-                            let std_time: SystemTime = g.timestamp.into();
-
-                            GreetingResponse {
-                                id: g.id,
-                                message: format!("{} says {}", g.sender_name, g.message),
-                                sender_name: g.sender_name,
-                                recipient_name: g.recipient_name,
-                                received_at: Some(std_time.into()),
-                            }
-                        })
-                        .collect(),
-                }
-                .into())
+                Ok(GreetingsResponse { replies }.into())
             }
             Some(n) => match self.greetings_repo.get_greetings_by_name(n).await {
-                Some(greetings) => Ok(GreetingsResponse {
-                    replies: greetings
-                        .iter()
-                        .map(|g| {
-                            let g = g.clone();
-                            let std_time: SystemTime = g.timestamp.into();
+                Some(greetings) => {
+                    let replies = greetings
+                        .into_iter()
+                        .map(|greeting| greeting_response_from_greeting(n.to_string(), greeting))
+                        .collect();
 
-                            GreetingResponse {
-                                id: g.id,
-                                message: format!("{} says {}", g.sender_name, g.message),
-                                sender_name: g.sender_name,
-                                recipient_name: g.recipient_name,
-                                received_at: Some(std_time.into()),
-                            }
-                        })
-                        .collect(),
+                    Ok(GreetingsResponse { replies }.into())
                 }
-                .into()),
                 None => Err(Status::not_found("no greetings found for this name")),
             },
         }
