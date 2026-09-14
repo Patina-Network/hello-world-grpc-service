@@ -58,6 +58,9 @@ jobs:
         uses: ./.github/composite/setup
         with:
           SECRETS: ${{ toJSON(secrets) }}
+          HEADSCALE_ADDRESS: ${{ secrets.HEADSCALE_ADDRESS }}
+          HEADSCALE_USER: ${{ secrets.HEADSCALE_USER }}
+          HEADSCALE_PREAUTHKEY: ${{ secrets.HEADSCALE_PREAUTHKEY }}
 
       - name: Run script
         run: bun run .github/scripts/src/build/beta --sha=${{ github.event.pull_request.head.sha }} --prId=${{ github.event.pull_request.number }}
