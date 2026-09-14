@@ -22,6 +22,10 @@ inputs:
     description: "Would you like to install Just? Defaults to false"
     required: false
     default: "false"
+  INSTALL_PROTOC:
+    description: "Would you like to install protoc? Defaults to false"
+    required: false
+    default: "false"
   HEADSCALE_ADDRESS:
     description: "Headscale address (passing any of the Headscale args in will enable Headscale support for the job)"
     required: false
@@ -39,14 +43,14 @@ runs:
   using: "composite"
   steps:
     - name: Setup
-      uses: tahminator/pipeline/actions/setup@1.0.73
+      uses: tahminator/pipeline/actions/setup@1.0.77
       with:
         AZURE_CLIENT_ID: ${{ inputs.AZURE_CLIENT_ID }}
         AZURE_CLIENT_SECRET: ${{ inputs.AZURE_CLIENT_SECRET }}
         AZURE_TENANT_ID: ${{ inputs.AZURE_TENANT_ID }}
         AZURE_SUBSCRIPTION_ID: ${{ inputs.AZURE_SUBSCRIPTION_ID }}
-        INSTALL_SOPS: true
         INSTALL_JUST: ${{ inputs.INSTALL_JUST }}
+        INSTALL_PROTOC: ${{ inputs.INSTALL_PROTOC }}
         HEADSCALE_ADDRESS: ${{ inputs.HEADSCALE_ADDRESS }}
         HEADSCALE_USER: ${{ inputs.HEADSCALE_USER }}
         HEADSCALE_PREAUTHKEY: ${{ inputs.HEADSCALE_PREAUTHKEY }}

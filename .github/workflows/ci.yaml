@@ -26,6 +26,7 @@ jobs:
         with:
           SECRETS: ${{ toJSON(secrets) }}
           INSTALL_JUST: true
+          INSTALL_PROTOC: true
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -40,3 +41,23 @@ jobs:
 
       - name: Run Tests
         uses: ./.github/composite/test
+
+  buildAndDeployGrpcClientBeta:
+    name: Build and deploy gRPC client beta
+    runs-on: ubuntu-latest
+
+    needs: [test]
+
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Pipeline
+        uses: ./.github/composite/setup
+        with:
+          SECRETS: ${{ toJSON(secrets) }}
+
+      - name: Run script
+        run: bun run .github/scripts/src/build/beta --sha=${{ github.event.pull_request.head.sha }} --prId=${{ github.event.pull_request.number }}

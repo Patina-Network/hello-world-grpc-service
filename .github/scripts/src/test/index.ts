@@ -15,7 +15,7 @@ async function main() {
         "rust.lcov.reportPaths": "./lcov.info",
         exclusions: `${exclusions}`,
       },
-      organization: "Patina-Network",
+      organization: "patina-network",
       sourceCodeDir: "./",
       projectKey: "Patina-Network_hello-world-grpc-service",
     },
@@ -40,11 +40,4 @@ function parseCiEnv(ciEnv: Record<string, string | undefined>) {
   return { sonarToken };
 }
 
-main()
-  .then(() => {
-    process.exit(0);
-  })
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  });
+void main();
