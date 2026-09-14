@@ -6,8 +6,8 @@ use axum::{
 };
 
 pub async fn metrics(State(state): State<AppState>) -> Result<impl IntoResponse, StatusCode> {
+    // add more repo / non-auto metric collections here
     state.sys_collector.collect();
-
     state.greetings_repo.collect().await;
 
     let body = state.prometheus_handle.render();
