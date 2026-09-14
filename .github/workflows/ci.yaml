@@ -42,11 +42,9 @@ jobs:
       - name: Run Tests
         uses: ./.github/composite/test
 
-  buildAndDeployGrpcClientBeta:
-    name: Build and deploy gRPC client beta
+  testBuildAndDeployGrpcClientBeta:
+    name: Test, build and deploy gRPC client beta
     runs-on: ubuntu-latest
-
-    needs: [test]
 
     if: github.event_name == 'pull_request'
 
@@ -61,6 +59,15 @@ jobs:
           HEADSCALE_ADDRESS: ${{ secrets.HEADSCALE_ADDRESS }}
           HEADSCALE_USER: ${{ secrets.HEADSCALE_USER }}
           HEADSCALE_PREAUTHKEY: ${{ secrets.HEADSCALE_PREAUTHKEY }}
+
+      - name: Install cargo-hack
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-hack
+          version: "^0.6.45"
+
+      - name: Run Tests
+        run: cargo test
 
       - name: Run script
         run: bun run .github/scripts/src/build/beta --sha=${{ github.event.pull_request.head.sha }} --prId=${{ github.event.pull_request.number }}
