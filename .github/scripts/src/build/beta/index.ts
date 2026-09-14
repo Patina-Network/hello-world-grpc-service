@@ -69,7 +69,6 @@ async function main() {
         version: betaVersion,
       },
       [ProtobufTargetLanguage.GO]: {
-        modulePath: "patinanetwork.org/hello-world-grpc-service",
         version: betaVersion,
       },
       [ProtobufTargetLanguage.JAVA]: {
