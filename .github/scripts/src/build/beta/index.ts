@@ -25,6 +25,7 @@ const { sha } = await yargs(hideBin(process.argv))
 async function main() {
   const {
     artifactKeeperToken,
+    artifactKeeperUsername,
     bufToken,
     githubAppAppId,
     githubAppInstallationId,
@@ -60,7 +61,7 @@ async function main() {
     backend: {
       type: ProtobufCompilerBackend.ARTIFACT_KEEPER,
       url: "https://pkg.vpn.patinanetwork.org",
-      username: "CICD",
+      username: artifactKeeperUsername,
       token: artifactKeeperToken,
     },
     targetLanguages: {
@@ -85,9 +86,17 @@ async function main() {
 
 function parseCiEnv(ciEnv: Record<string, string | undefined>) {
   const artifactKeeperToken = (() => {
-    const v = ciEnv["ARTIFACT_KEEPER_TOKEN"];
+    const v = ciEnv["ARTIFACTKEEPER_TOKEN"];
     if (!v) {
-      throw new Error("Missing ARTIFACT_KEEPER_TOKEN from env");
+      throw new Error("Missing ARTIFACTKEEPER_TOKEN from env");
+    }
+    return v;
+  })();
+
+  const artifactKeeperUsername = (() => {
+    const v = ciEnv["ARTIFACTKEEPER_USERNAME"];
+    if (!v) {
+      throw new Error("Missing ARTIFACTKEEPER_USERNAME from env");
     }
     return v;
   })();
@@ -126,6 +135,7 @@ function parseCiEnv(ciEnv: Record<string, string | undefined>) {
 
   return {
     artifactKeeperToken,
+    artifactKeeperUsername,
     bufToken,
     githubAppAppId,
     githubAppInstallationId,
