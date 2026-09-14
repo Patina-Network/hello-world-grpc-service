@@ -1,0 +1,42 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/refs/heads/master/src/schemas/json/github-workflow.json
+name: CI
+run-name: Running continuous integration on ${{ github.actor }}'s commits
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup pipeline
+        uses: ./.github/composite/setup
+        with:
+          SECRETS: ${{ toJSON(secrets) }}
+          INSTALL_JUST: true
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 11.11.0
+
+      - name: Install cargo-tarpaulin
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-tarpaulin
+          version: "^0.37"
+
+      - name: Run Tests
+        uses: ./.github/composite/test
