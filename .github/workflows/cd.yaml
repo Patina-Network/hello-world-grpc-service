@@ -1,0 +1,36 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/refs/heads/master/src/schemas/json/github-workflow.json
+name: CD
+run-name: Running continuous deployment on ${{ github.actor }}'s commits
+
+permissions:
+  contents: read
+
+on:
+  push:
+    tags:
+      - "*"
+
+concurrency:
+  group: cd
+  cancel-in-progress: false
+
+jobs:
+  buildAndDeploy:
+    name: Build and deploy gRPC clients
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Pipeline
+        uses: ./.github/composite/setup
+        with:
+          SECRETS: ${{ toJSON(secrets) }}
+          HEADSCALE_ADDRESS: ${{ secrets.HEADSCALE_ADDRESS }}
+          HEADSCALE_USER: ${{ secrets.HEADSCALE_USER }}
+          HEADSCALE_PREAUTHKEY: ${{ secrets.HEADSCALE_PREAUTHKEY }}
+          INSTALL_PROTO_DEPENDENCIES: true
+
+      - name: Build and deploy gRPC clients
+        run: bun run .github/scripts/src/build --version=${{ github.ref_name }}
