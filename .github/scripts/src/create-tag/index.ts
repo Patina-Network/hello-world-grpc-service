@@ -1,15 +1,12 @@
 import {
-  EnvClient,
-  EnvClientStrategy,
   GitHubClient,
   VersioningClient,
   VersionUpdatingStrategy,
 } from "@tahminator/pipeline";
 
 export async function main() {
-  const envClient = EnvClient.create(EnvClientStrategy.SOPS);
   const { githubAppAppId, githubAppInstallationId, githubAppPrivateKey } =
-    parseCiEnv(await envClient.readFromEnv("secrets.yaml"));
+    parseCiEnv(process.env);
 
   const ghClient = await GitHubClient.createWithGithubAppToken({
     appId: githubAppAppId,
@@ -39,7 +36,7 @@ export async function main() {
   });
 }
 
-function parseCiEnv(ciEnv: Record<string, string>) {
+function parseCiEnv(ciEnv: Record<string, string | undefined>) {
   const githubAppAppId = (() => {
     const v = ciEnv["_GITHUB_APP_APP_ID"];
     if (!v) {
