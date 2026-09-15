@@ -22,6 +22,10 @@ inputs:
     description: "Would you like to install Just? Defaults to false"
     required: false
     default: "false"
+  INSTALL_BREW:
+    description: "Would you like to install brew? Defaults to false. INSTALL_PROTO_DEPENDENCIES also install brew."
+    required: false
+    default: "false"
   INSTALL_PROTOC:
     description: "Would you like to install protoc only? Defaults to false. INSTALL_PROTO_DEPENDENCIES also installs protoc."
     required: false
@@ -47,13 +51,14 @@ runs:
   using: "composite"
   steps:
     - name: Setup
-      uses: tahminator/pipeline/actions/setup@c9d1c1496801178388a54b4006540945d0441d61
+      uses: tahminator/pipeline/actions/setup@29f61b6c41012824d05c67854b00ed83152e3e33
       with:
         AZURE_CLIENT_ID: ${{ inputs.AZURE_CLIENT_ID }}
         AZURE_CLIENT_SECRET: ${{ inputs.AZURE_CLIENT_SECRET }}
         AZURE_TENANT_ID: ${{ inputs.AZURE_TENANT_ID }}
         AZURE_SUBSCRIPTION_ID: ${{ inputs.AZURE_SUBSCRIPTION_ID }}
         INSTALL_JUST: ${{ inputs.INSTALL_JUST }}
+        INSTALL_BREW: ${{ inputs.INSTALL_BREW }}
         INSTALL_PROTOC: ${{ inputs.INSTALL_PROTOC }}
         INSTALL_PROTO_DEPENDENCIES: ${{ inputs.INSTALL_PROTO_DEPENDENCIES }}
         HEADSCALE_ADDRESS: ${{ inputs.HEADSCALE_ADDRESS }}
