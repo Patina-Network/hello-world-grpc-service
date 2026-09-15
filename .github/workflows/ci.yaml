@@ -25,22 +25,15 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup pipeline
-        uses: ./.github/composite/setup
+        uses: tahminator/pipeline/actions/setup@64369c91c5fd398ddfe7528e006057a73cfae204
         with:
           SECRETS: ${{ toJSON(secrets) }}
           INSTALL_JUST: true
           INSTALL_PROTOC: true
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 11.11.0
-
-      - name: Install cargo-tarpaulin
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-tarpaulin
-          version: "^0.37"
+          INSTALL_PNPM: true
+          PNPM_VERSION: 11.11.0
+          CARGO_PACKAGES: |
+            cargo-tarpaulin@0.37.2
 
       - name: Run Tests
         uses: ./.github/composite/test
@@ -57,7 +50,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Pipeline
-        uses: ./.github/composite/setup
+        uses: tahminator/pipeline/actions/setup@64369c91c5fd398ddfe7528e006057a73cfae204
         with:
           SECRETS: ${{ toJSON(secrets) }}
           HEADSCALE_ADDRESS: ${{ secrets.HEADSCALE_ADDRESS }}
@@ -83,19 +76,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Pipeline
-        uses: ./.github/composite/setup
+        uses: tahminator/pipeline/actions/setup@64369c91c5fd398ddfe7528e006057a73cfae204
         with:
           SECRETS: ${{ toJSON(secrets) }}
           HEADSCALE_ADDRESS: ${{ secrets.HEADSCALE_ADDRESS }}
           HEADSCALE_USER: ${{ secrets.HEADSCALE_USER }}
           HEADSCALE_PREAUTHKEY: ${{ secrets.HEADSCALE_PREAUTHKEY }}
           INSTALL_PROTO_DEPENDENCIES: true
-
-      - name: Install cargo-hack
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-hack
-          version: "^0.6.45"
 
       - name: Run Tests
         run: cargo test
@@ -120,7 +107,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Setup pipeline
-        uses: ./.github/composite/setup
+        uses: tahminator/pipeline/actions/setup@64369c91c5fd398ddfe7528e006057a73cfae204
         with:
           SECRETS: ${{ toJSON(secrets) }}
 
@@ -143,7 +130,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup pipeline
-        uses: ./.github/composite/setup
+        uses: tahminator/pipeline/actions/setup@64369c91c5fd398ddfe7528e006057a73cfae204
         with:
           SECRETS: ${{ toJSON(secrets) }}
 
