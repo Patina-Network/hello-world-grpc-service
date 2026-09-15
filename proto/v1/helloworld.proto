@@ -3,6 +3,11 @@ package helloworld;
 
 import "google/protobuf/timestamp.proto";
 
+// you must fill all of these out in our services
+option go_package = "patinanetwork.org/grpc/hello-world-grpc-service;helloworld";
+option java_package = "org.patinanetwork.grpc.helloworld.v1";
+option java_multiple_files = true;
+
 service GreeterService {
   // Returns back a greeting with the same given in the request
   rpc echoHello(EchoHelloRequest) returns (EchoHelloResponse);
