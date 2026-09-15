@@ -10,6 +10,8 @@ import {
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
+import { getShortSha } from "../../utils";
+
 const { sha, prId } = await yargs(hideBin(process.argv))
   .option("sha", {
     type: "string",
@@ -88,24 +90,24 @@ async function main() {
     prId,
     owner: "Patina-Network",
     repository: "hello-world-grpc-service",
-    message: `## Beta gRPC Clients Uploaded
+    message: `The gRPC client packages have been uploaded to https://pkg.vpn.patinanetwork.org under the following version(s):
 
-Published version \`${betaVersion}\` to [Artifact Keeper](https://pkg.vpn.patinanetwork.org) for the following clients:
+- \`${betaVersion}\`
 
-### Rust
+#### Rust:
 
 \`\`\`toml
 [dependencies]
 hello-world-grpc-service = { version = "${betaVersion}", registry = "patinanetwork" }
 \`\`\`
 
-### Go
+#### Go:
 
 \`\`\`go
 require patinanetwork.org/hello-world-grpc-service ${goVersion}
 \`\`\`
 
-### Java
+#### Java:
 
 \`\`\`xml
 <dependency>
@@ -175,16 +177,6 @@ function parseCiEnv(ciEnv: Record<string, string | undefined>) {
     githubAppInstallationId,
     githubAppPemContent,
   };
-}
-
-async function getShortSha(sha: string) {
-  const shortSha = sha.slice(0, 8).toString().trim();
-
-  if (shortSha.length !== 8) {
-    throw new Error("Could not parse git SHA");
-  }
-
-  return shortSha;
 }
 
 void main();

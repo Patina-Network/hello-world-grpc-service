@@ -15,7 +15,33 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  buildAndDeploy:
+  promoteImage:
+    name: Promote Docker image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          # so we can reach latest commit before tag
+          fetch-depth: 2
+
+      - name: Setup Pipeline
+        uses: ./.github/composite/setup
+        with:
+          SECRETS: ${{ toJSON(secrets) }}
+
+      - name: Get Parent SHA
+        id: prev
+        run: echo "sha=$(git rev-parse --short=8 ${{ github.sha }}^1)" >> $GITHUB_OUTPUT
+
+      - name: Promote image
+        uses: ./.github/composite/promote-server
+        with:
+          ORIGINAL_TAG: ${{ steps.prev.outputs.sha }}
+          NEW_GITHUB_TAG: ${{ github.ref_name }}
+
+  buildAndDeployClients:
     name: Build and deploy gRPC clients
     runs-on: ubuntu-latest
 
@@ -33,4 +59,4 @@ jobs:
           INSTALL_PROTO_DEPENDENCIES: true
 
       - name: Build and deploy gRPC clients
-        run: bun run .github/scripts/src/build --version=${{ github.ref_name }}
+        run: bun run .github/scripts/src/build-clients --version=${{ github.ref_name }}

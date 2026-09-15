@@ -3,6 +3,8 @@ import { $ } from "bun";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
+import { getShortSha } from "../utils";
+
 const { getGhaOutput, githubOutputFile } = await yargs(hideBin(process.argv))
   .option("getGhaOutput", {
     type: "boolean",
@@ -27,7 +29,7 @@ async function main() {
     githubAppPrivateKey,
   } = parseCiEnv(process.env);
 
-  const gitSha = (await $`git rev-parse --short HEAD`.text()).trim();
+  const gitSha = await getShortSha(await $`git rev-parse HEAD`.text());
 
   await using dockerClient = await DockerClient.create(
     dockerHubUsername,

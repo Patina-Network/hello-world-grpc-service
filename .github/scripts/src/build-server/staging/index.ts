@@ -2,6 +2,8 @@ import { DockerClient, GitHubClient } from "@tahminator/pipeline";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
+import { getShortSha } from "../../utils";
+
 const { sha, prId } = await yargs(hideBin(process.argv))
   .option("sha", {
     type: "string",
@@ -30,7 +32,8 @@ async function main() {
     dockerHubPat,
   );
 
-  const tags = [`${tagPrefix}${sha}`];
+  const shortSha = await getShortSha(sha);
+  const tags = [`${tagPrefix}${shortSha}`];
 
   console.log("Building image with following tags:");
   tags.forEach((tag) => console.log(tag));
@@ -54,8 +57,8 @@ async function main() {
   await githubClient.sendPrMessage({
     prId,
     owner: "Patina-Network",
-    repository: "codebloom",
-    message: `The image has been uploaded to https://hub.docker.com/r/patinanetwork/hello-world-grpc-service/tags under the following tags:
+    repository: "hello-world-grpc-service",
+    message: `The gRPC server image has been uploaded to https://hub.docker.com/r/patinanetwork/hello-world-grpc-service/tags under the following tags:
 
 ${tags.map((t) => `- \`hello-world-grpc-service:${t}\``).join("\n")}
 `,
