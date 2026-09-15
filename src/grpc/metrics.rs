@@ -1,4 +1,5 @@
 use std::{
+    sync::Arc,
     task::{Context, Poll},
     time::Instant,
 };
@@ -26,7 +27,7 @@ where
 {
     async fn call(&self, req: Request<Body>, mut service: S) -> Result<Response<Body>, S::Error> {
         let start = Instant::now();
-        let grpc_method = req.uri().path().trim_start_matches('/').to_string();
+        let grpc_method = Arc::from(req.uri().path().trim_start_matches('/'));
 
         let result = service.call(req).await;
 
@@ -82,7 +83,7 @@ fn status_code_from(headers: &HeaderMap) -> Option<&'static str> {
         })
 }
 
-fn record_grpc_request_metrics(grpc_method: String, status: &'static str, start: Instant) {
+fn record_grpc_request_metrics(grpc_method: Arc<str>, status: &'static str, start: Instant) {
     counter!(
         "grpc_requests_total",
         "method" => grpc_method.clone(),
@@ -107,7 +108,7 @@ pin_project! {
 }
 
 struct GrpcMetricsRecorder {
-    grpc_method: String,
+    grpc_method: Arc<str>,
     start: Instant,
     recorded: bool,
 }
