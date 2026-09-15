@@ -76,7 +76,7 @@ async function main() {
         groupId: "org.patinanetwork.grpc",
         artifactId: "hello-world-grpc-service",
         version: betaVersion,
-        buildTool: "gradle",
+        buildTool: "maven",
       },
     },
     protoFilesLocation: "./proto",
