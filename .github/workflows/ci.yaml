@@ -65,12 +65,6 @@ jobs:
           HEADSCALE_PREAUTHKEY: ${{ secrets.HEADSCALE_PREAUTHKEY }}
           INSTALL_PROTO_DEPENDENCIES: true
 
-      - name: Install cargo-hack
-        uses: baptiste0928/cargo-install@v3
-        with:
-          crate: cargo-hack
-          version: "^0.6.45"
-
       - name: Run Tests
         run: cargo test
 
