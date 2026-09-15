@@ -10,7 +10,7 @@ import {
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-const { sha } = await yargs(hideBin(process.argv))
+const { sha, prId } = await yargs(hideBin(process.argv))
   .option("sha", {
     type: "string",
     demandOption: true,
@@ -55,6 +55,7 @@ async function main() {
 
   const shortSha = await getShortSha(sha);
   const betaVersion = await versioningClient.nextBeta(shortSha);
+  const goVersion = `v${betaVersion.replace(/^v/, "")}`;
 
   await protoClient.compile({
     sourceLanguage: ProtobufSourceLanguage.RUST,
@@ -81,6 +82,39 @@ async function main() {
     },
     protoFilesLocation: "./proto",
     bufToken,
+  });
+
+  await ghClient.sendPrMessage({
+    prId,
+    owner: "Patina-Network",
+    repository: "hello-world-grpc-service",
+    message: `## Beta gRPC Clients Uploaded
+
+Published version \`${betaVersion}\` to [Artifact Keeper](https://pkg.vpn.patinanetwork.org) for the following clients:
+
+### Rust
+
+\`\`\`toml
+[dependencies]
+hello-world-grpc-service = { version = "${betaVersion}", registry = "patinanetwork" }
+\`\`\`
+
+### Go
+
+\`\`\`go
+require patinanetwork.org/hello-world-grpc-service ${goVersion}
+\`\`\`
+
+### Java
+
+\`\`\`xml
+<dependency>
+  <groupId>org.patinanetwork.grpc</groupId>
+  <artifactId>hello-world-grpc-service</artifactId>
+  <version>${betaVersion}</version>
+</dependency>
+\`\`\`
+`,
   });
 }
 

@@ -8,9 +8,8 @@ const { sha, prId } = await yargs(hideBin(process.argv))
     demandOption: true,
   })
   .option("prId", {
-    type: "string",
-    default: "",
-    coerce: (v: string) => (v === "" ? undefined : Number(v)),
+    type: "number",
+    demandOption: true,
   })
   .strict()
   .parse();
@@ -52,17 +51,15 @@ async function main() {
     privateKey: githubAppPrivateKey,
   });
 
-  if (prId !== undefined) {
-    await githubClient.sendPrMessage({
-      prId,
-      owner: "Patina-Network",
-      repository: "codebloom",
-      message: `The image has been uploaded to https://hub.docker.com/r/patinanetwork/hello-world-grpc-service/tags under the following tags:
+  await githubClient.sendPrMessage({
+    prId,
+    owner: "Patina-Network",
+    repository: "codebloom",
+    message: `The image has been uploaded to https://hub.docker.com/r/patinanetwork/hello-world-grpc-service/tags under the following tags:
 
 ${tags.map((t) => `- \`hello-world-grpc-service:${t}\``).join("\n")}
 `,
-    });
-  }
+  });
 }
 
 function parseCiEnv(ciEnv: Record<string, string | undefined>) {
