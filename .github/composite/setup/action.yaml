@@ -47,7 +47,7 @@ runs:
   using: "composite"
   steps:
     - name: Setup
-      uses: tahminator/pipeline/actions/setup@1.0.81
+      uses: tahminator/pipeline/actions/setup@c9d1c1496801178388a54b4006540945d0441d61
       with:
         AZURE_CLIENT_ID: ${{ inputs.AZURE_CLIENT_ID }}
         AZURE_CLIENT_SECRET: ${{ inputs.AZURE_CLIENT_SECRET }}
@@ -55,6 +55,7 @@ runs:
         AZURE_SUBSCRIPTION_ID: ${{ inputs.AZURE_SUBSCRIPTION_ID }}
         INSTALL_JUST: ${{ inputs.INSTALL_JUST }}
         INSTALL_PROTOC: ${{ inputs.INSTALL_PROTOC }}
+        INSTALL_PROTO_DEPENDENCIES: ${{ inputs.INSTALL_PROTO_DEPENDENCIES }}
         HEADSCALE_ADDRESS: ${{ inputs.HEADSCALE_ADDRESS }}
         HEADSCALE_USER: ${{ inputs.HEADSCALE_USER }}
         HEADSCALE_PREAUTHKEY: ${{ inputs.HEADSCALE_PREAUTHKEY }}
