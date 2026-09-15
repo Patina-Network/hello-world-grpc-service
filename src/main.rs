@@ -55,8 +55,8 @@ async fn main() -> anyhow::Result<()> {
     let config = Config::from_env()?;
     config.log();
 
-    let grpc_addr = format!("[::1]:{}", config.grpc_port).parse()?;
-    let http_addr = format!("[::1]:{}", config.http_port);
+    let grpc_addr = format!("0.0.0.0:{}", config.grpc_port).parse()?;
+    let http_addr = format!("0.0.0.0:{}", config.http_port);
 
     let greeter_repo = Arc::new(GreetingsRepository::new());
 
