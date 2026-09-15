@@ -59,7 +59,7 @@ jobs:
           HEADSCALE_ADDRESS: ${{ secrets.HEADSCALE_ADDRESS }}
           HEADSCALE_USER: ${{ secrets.HEADSCALE_USER }}
           HEADSCALE_PREAUTHKEY: ${{ secrets.HEADSCALE_PREAUTHKEY }}
-          INSTALL_PROTOC: true
+          INSTALL_PROTO_DEPENDENCIES: true
 
       - name: Install cargo-hack
         uses: baptiste0928/cargo-install@v3

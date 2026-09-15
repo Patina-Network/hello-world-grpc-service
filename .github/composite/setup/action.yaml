@@ -23,7 +23,11 @@ inputs:
     required: false
     default: "false"
   INSTALL_PROTOC:
-    description: "Would you like to install protoc? Defaults to false"
+    description: "Would you like to install protoc only? Defaults to false. INSTALL_PROTO_DEPENDENCIES also installs protoc."
+    required: false
+    default: "false"
+  INSTALL_PROTO_DEPENDENCIES:
+    description: "Install and cache all protobuf code-generation tools used by ProtobufCompilerClient. This installs buf, protoc, protoc-gen-go, protoc-gen-go-grpc, protoc-gen-grpc-java, protoc-gen-prost, and protoc-gen-tonic so generation stays local and does not use BSR remote plugins. Defaults to false."
     required: false
     default: "false"
   HEADSCALE_ADDRESS:
@@ -43,7 +47,7 @@ runs:
   using: "composite"
   steps:
     - name: Setup
-      uses: tahminator/pipeline/actions/setup@1.0.77
+      uses: tahminator/pipeline/actions/setup@1.0.81
       with:
         AZURE_CLIENT_ID: ${{ inputs.AZURE_CLIENT_ID }}
         AZURE_CLIENT_SECRET: ${{ inputs.AZURE_CLIENT_SECRET }}
