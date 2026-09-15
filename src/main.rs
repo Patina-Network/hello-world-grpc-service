@@ -58,6 +58,8 @@ async fn main() -> anyhow::Result<()> {
     let grpc_addr = format!("0.0.0.0:{}", config.grpc_port).parse()?;
     let http_addr = format!("0.0.0.0:{}", config.http_port);
 
+    // repos and internal svcs should be wrapped in Arc so that we can pass them into multiple grpc
+    // svc impls without expensive cloning (especially when we have an actual database connection)
     let greeter_repo = Arc::new(GreetingsRepository::new());
 
     let grpc_greeter_svc = GreeterService::new(greeter_repo.clone());
