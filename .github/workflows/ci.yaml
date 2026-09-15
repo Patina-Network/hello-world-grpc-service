@@ -91,7 +91,7 @@ jobs:
         run: bun run .github/scripts/src/build-server/staging --sha=${{ github.event.pull_request.head.sha }} --prId=${{ github.event.pull_request.number }}
 
   buildUploadServerImage:
-    name: Build Docker image and deploy to Docker Hub
+    name: Build gRPC server Docker image and deploy to Docker Hub
     runs-on: ubuntu-latest
     needs: [test]
 

@@ -43,7 +43,7 @@ function parseCiEnv(ciEnv: Record<string, string>) {
   const githubAppAppId = (() => {
     const v = ciEnv["_GITHUB_APP_APP_ID"];
     if (!v) {
-      throw new Error("Missing _GITHUB_APP_APP_ID from .env.ci");
+      throw new Error("Missing _GITHUB_APP_APP_ID from env");
     }
     return v;
   })();
@@ -51,7 +51,7 @@ function parseCiEnv(ciEnv: Record<string, string>) {
   const githubAppInstallationId = (() => {
     const v = ciEnv["_GITHUB_APP_INSTALLATION_ID"];
     if (!v) {
-      throw new Error("Missing _GITHUB_APP_INSTALLATION_ID from .env.ci");
+      throw new Error("Missing _GITHUB_APP_INSTALLATION_ID from env");
     }
     return v;
   })();
@@ -59,7 +59,7 @@ function parseCiEnv(ciEnv: Record<string, string>) {
   const githubAppPrivateKey = (() => {
     const v = ciEnv["_GITHUB_APP_PEM_CONTENT"];
     if (!v) {
-      throw new Error("Missing _GITHUB_APP_PRIVATE_KEY from .env.ci");
+      throw new Error("Missing _GITHUB_APP_PRIVATE_KEY from env");
     }
     return v;
   })();
