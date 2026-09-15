@@ -8,6 +8,7 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
 const { version } = await yargs(hideBin(process.argv))
+  .version(false)
   .option("version", {
     type: "string",
     demandOption: true,
