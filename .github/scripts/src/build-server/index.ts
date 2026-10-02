@@ -46,7 +46,7 @@ async function main() {
     dockerFileLocation: "Dockerfile",
     tags,
     shouldUpload: true,
-    platforms: ["linux/amd64"],
+    platforms: ["linux/amd64", "linux/arm64"],
   });
 
   console.log("Image pushed successfully.");
