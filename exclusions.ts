@@ -3,4 +3,4 @@
  * for test exclusion usages.
  */
 
-export const exclusions = ["**/*.rs"] as const;
+export const exclusions = ["**/*"] as const;
