@@ -5,7 +5,9 @@ import { hideBin } from "yargs/helpers";
 
 import { getShortSha } from "../utils";
 
-const { getGhaOutput, githubOutputFile } = await yargs(hideBin(process.argv))
+const { getGhaOutput, githubOutputFile, arch } = await yargs(
+  hideBin(process.argv),
+)
   .option("getGhaOutput", {
     type: "boolean",
     describe:
@@ -17,8 +19,19 @@ const { getGhaOutput, githubOutputFile } = await yargs(hideBin(process.argv))
     describe: "Path to GITHUB_OUTPUT (passed in automatically in CI)",
     default: process.env.GITHUB_OUTPUT,
   })
+  .option("arch", {
+    choices: ["amd64", "arm64"] as const,
+    describe: "Docker build architecture",
+    default: "amd64" as const,
+  })
   .strict()
   .parse();
+
+const dockerRepository =
+  arch === "arm64"
+    ? "hello-world-grpc-service-arm"
+    : "hello-world-grpc-service";
+const platforms = [`linux/${arch}`];
 
 async function main() {
   const {
@@ -42,11 +55,11 @@ async function main() {
   tags.forEach((tag) => console.log(tag));
 
   await dockerClient.buildImage({
-    dockerRepository: "hello-world-grpc-service",
+    dockerRepository,
     dockerFileLocation: "Dockerfile",
     tags,
     shouldUpload: true,
-    platforms: ["linux/amd64", "linux/arm64"],
+    platforms,
   });
 
   console.log("Image pushed successfully.");
