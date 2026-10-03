@@ -25,7 +25,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup pipeline
-        uses: tahminator/pipeline/actions/setup@d395d64fc90fb8dd240efe521a675f9f36a0494f #1.0.85
+        uses: tahminator/pipeline/actions/setup@07fc9d27be126e0e9905af56e5d1b74440592626 # 1.0.89
         with:
           SECRETS: ${{ toJSON(secrets) }}
           INSTALL_JUST: true
@@ -50,7 +50,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Pipeline
-        uses: tahminator/pipeline/actions/setup@d395d64fc90fb8dd240efe521a675f9f36a0494f #1.0.85
+        uses: tahminator/pipeline/actions/setup@07fc9d27be126e0e9905af56e5d1b74440592626 # 1.0.89
         with:
           SECRETS: ${{ toJSON(secrets) }}
           HEADSCALE_ADDRESS: ${{ secrets.HEADSCALE_ADDRESS }}
@@ -84,7 +84,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Pipeline
-        uses: tahminator/pipeline/actions/setup@d395d64fc90fb8dd240efe521a675f9f36a0494f #1.0.85
+        uses: tahminator/pipeline/actions/setup@07fc9d27be126e0e9905af56e5d1b74440592626 # 1.0.89
         with:
           SECRETS: ${{ toJSON(secrets) }}
           HEADSCALE_ADDRESS: ${{ secrets.HEADSCALE_ADDRESS }}
@@ -123,7 +123,7 @@ jobs:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Setup pipeline
-        uses: tahminator/pipeline/actions/setup@d395d64fc90fb8dd240efe521a675f9f36a0494f #1.0.85
+        uses: tahminator/pipeline/actions/setup@07fc9d27be126e0e9905af56e5d1b74440592626 # 1.0.89
         with:
           SECRETS: ${{ toJSON(secrets) }}
 
@@ -148,7 +148,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup pipeline
-        uses: tahminator/pipeline/actions/setup@d395d64fc90fb8dd240efe521a675f9f36a0494f #1.0.85
+        uses: tahminator/pipeline/actions/setup@07fc9d27be126e0e9905af56e5d1b74440592626 # 1.0.89
         with:
           SECRETS: ${{ toJSON(secrets) }}
 
