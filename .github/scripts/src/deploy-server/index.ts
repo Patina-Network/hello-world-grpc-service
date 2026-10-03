@@ -25,7 +25,7 @@ async function main() {
     originRepo: ["Patina-Network", "hello-world-grpc-service"],
     kustomizationFilePath:
       "base/production/hello-world-grpc-service/kustomization.yaml",
-    imageName: "patinanetwork/hello-world-grpc-service",
+    imageName: "patinanetwork/hello-world-grpc-service-arm",
     newTag: newTagVersion,
     environment: "production",
   });
