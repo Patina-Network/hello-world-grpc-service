@@ -65,11 +65,19 @@ jobs:
         run: bun run .github/scripts/src/build-clients/beta --sha=${{ github.event.pull_request.head.sha }} --prId=${{ github.event.pull_request.number }}
 
   buildUploadServerImageStaging:
-    name: Build and deploy staging gRPC server
-    runs-on: ubuntu-latest
+    name: Build and deploy staging gRPC server (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
     needs: [test]
 
     if: github.event_name == 'pull_request'
+
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
 
     steps:
       - name: Checkout Repository
@@ -88,14 +96,22 @@ jobs:
         run: cargo test
 
       - name: Run script
-        run: bun run .github/scripts/src/build-server/staging --sha=${{ github.event.pull_request.head.sha }} --prId=${{ github.event.pull_request.number }}
+        run: bun run .github/scripts/src/build-server/staging --sha=${{ github.event.pull_request.head.sha }} --prId=${{ github.event.pull_request.number }} --arch=${{ matrix.arch }}
 
   buildUploadServerImage:
-    name: Build gRPC server Docker image and deploy to Docker Hub
-    runs-on: ubuntu-latest
+    name: Build gRPC server Docker image and deploy to Docker Hub (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
     needs: [test]
 
     if: github.ref_name == 'main'
+
+    strategy:
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
 
     outputs:
       tag: ${{ steps.build.outputs.tag }}
@@ -114,6 +130,8 @@ jobs:
       - name: Build image
         uses: ./.github/composite/build-server
         id: build
+        with:
+          ARCH: ${{ matrix.arch }}
 
   createTag:
     name: Create new tag

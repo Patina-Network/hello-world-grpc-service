@@ -4,7 +4,7 @@ import { hideBin } from "yargs/helpers";
 
 import { getShortSha } from "../../utils";
 
-const { sha, prId } = await yargs(hideBin(process.argv))
+const { sha, prId, arch } = await yargs(hideBin(process.argv))
   .option("sha", {
     type: "string",
     demandOption: true,
@@ -13,10 +13,20 @@ const { sha, prId } = await yargs(hideBin(process.argv))
     type: "number",
     demandOption: true,
   })
+  .option("arch", {
+    choices: ["amd64", "arm64"] as const,
+    describe: "Docker build architecture",
+    default: "amd64" as const,
+  })
   .strict()
   .parse();
 
 const tagPrefix = "staging-";
+const dockerRepository =
+  arch === "arm64"
+    ? "hello-world-grpc-service-arm"
+    : "hello-world-grpc-service";
+const platforms = [`linux/${arch}`];
 
 async function main() {
   const {
@@ -39,11 +49,11 @@ async function main() {
   tags.forEach((tag) => console.log(tag));
 
   await dockerClient.buildImage({
-    dockerRepository: "hello-world-grpc-service",
+    dockerRepository,
     dockerFileLocation: "Dockerfile",
     tags,
     shouldUpload: true,
-    platforms: ["linux/amd64", "linux/arm64"],
+    platforms,
   });
 
   console.log("Image pushed successfully.");
@@ -58,9 +68,9 @@ async function main() {
     prId,
     owner: "Patina-Network",
     repository: "hello-world-grpc-service",
-    message: `The gRPC server image has been uploaded to https://hub.docker.com/r/patinanetwork/hello-world-grpc-service/tags under the following tags:
+    message: `The gRPC server image has been uploaded to https://hub.docker.com/r/patinanetwork/${dockerRepository}/tags under the following tags:
 
-${tags.map((t) => `- \`hello-world-grpc-service:${t}\``).join("\n")}
+${tags.map((t) => `- \`${dockerRepository}:${t}\``).join("\n")}
 `,
   });
 }

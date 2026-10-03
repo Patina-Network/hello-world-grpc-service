@@ -1,6 +1,12 @@
 name: Build server image
 description: Builds server image and pushes to Docker Hub
 
+inputs:
+  ARCH:
+    description: "Docker build architecture (amd64 or arm64)."
+    required: false
+    default: amd64
+
 outputs:
   tag:
     description: "The tag of the built image"
@@ -12,4 +18,4 @@ runs:
     - name: Build and push server image
       shell: bash
       id: build-image
-      run: bun run .github/scripts/src/build-server --getGhaOutput=true
+      run: bun run .github/scripts/src/build-server --getGhaOutput=true --arch="${{ inputs.ARCH }}"
