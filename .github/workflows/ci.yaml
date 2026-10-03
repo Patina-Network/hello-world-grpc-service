@@ -113,9 +113,6 @@ jobs:
           - arch: arm64
             runner: ubuntu-24.04-arm
 
-    outputs:
-      tag: ${{ steps.build.outputs.tag }}
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -129,7 +126,6 @@ jobs:
 
       - name: Build image
         uses: ./.github/composite/build-server
-        id: build
         with:
           ARCH: ${{ matrix.arch }}
 
