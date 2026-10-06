@@ -2,61 +2,39 @@ import { DockerClient } from "@tahminator/pipeline";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
+import { ARCHITECTURES, dockerRepository, requiredEnv } from "../consts";
+
 const { originalTag, newGithubTag, arch } = await yargs(hideBin(process.argv))
   .option("originalTag", {
     type: "string",
+    describe: "Existing image tag to promote, e.g. abcd1234",
     demandOption: true,
   })
   .option("newGithubTag", {
     type: "string",
+    describe: "Release tag to add, e.g. 1.2.34",
     demandOption: true,
   })
   .option("arch", {
-    choices: ["amd64", "arm64"] as const,
+    choices: ARCHITECTURES,
     describe:
-      "Image architecture to promote; must match the runner's architecture",
+      "Image architecture to promote. Must match the runner's architecture",
     default: "amd64" as const,
   })
   .strict()
   .parse();
 
-const dockerRepository =
-  arch === "arm64"
-    ? "hello-world-grpc-service-arm"
-    : "hello-world-grpc-service";
-
-export async function main() {
-  const { dockerHubPat, dockerHubUsername } = parseCiEnv(process.env);
+async function main() {
   await using dockerClient = await DockerClient.create(
-    dockerHubUsername,
-    dockerHubPat,
+    requiredEnv("DOCKER_HUB_USERNAME"),
+    requiredEnv("DOCKER_HUB_PAT"),
   );
 
   await dockerClient.promoteDockerImage({
     originalTag,
     newGithubTags: [newGithubTag, "latest"],
-    repository: dockerRepository,
+    repository: dockerRepository(arch),
   });
-}
-
-function parseCiEnv(ciEnv: Record<string, string | undefined>) {
-  const dockerHubPat = (() => {
-    const v = ciEnv["DOCKER_HUB_PAT"];
-    if (!v) {
-      throw new Error("Missing DOCKER_HUB_PAT from env");
-    }
-    return v;
-  })();
-
-  const dockerHubUsername = (() => {
-    const v = ciEnv["DOCKER_HUB_USERNAME"];
-    if (!v) {
-      throw new Error("Missing DOCKER_HUB_USERNAME from env");
-    }
-    return v;
-  })();
-
-  return { dockerHubPat, dockerHubUsername };
 }
 
 main()

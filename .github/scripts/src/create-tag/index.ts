@@ -4,64 +4,34 @@ import {
   VersionUpdatingStrategy,
 } from "@tahminator/pipeline";
 
-export async function main() {
-  const { githubAppAppId, githubAppInstallationId, githubAppPrivateKey } =
-    parseCiEnv(process.env);
+import { requiredEnv } from "../consts";
 
+async function main() {
   const ghClient = await GitHubClient.createWithGithubAppToken({
-    appId: githubAppAppId,
-    installationId: githubAppInstallationId,
-    privateKey: githubAppPrivateKey,
+    appId: requiredEnv("_GITHUB_APP_APP_ID"),
+    installationId: requiredEnv("_GITHUB_APP_INSTALLATION_ID"),
+    privateKey: requiredEnv("_GITHUB_APP_PEM_CONTENT"),
   });
-
-  const cargoToml = Bun.TOML.parse(await Bun.file("./Cargo.toml").text()) as {
-    package?: { version?: string };
-  };
-
-  const baseVersion = cargoToml.package?.version;
-  if (!baseVersion) {
-    throw new Error("Missing [package].version in Cargo.toml");
-  }
 
   const versioningClient = new VersioningClient(
     ghClient,
     VersionUpdatingStrategy.RUST_CARGO,
   );
 
+  const cargoToml = Bun.TOML.parse(await Bun.file("./Cargo.toml").text()) as {
+    package?: { version?: string };
+  };
+  const version = cargoToml.package?.version;
+  if (!version) {
+    throw new Error("Missing [package].version in Cargo.toml");
+  }
+
   await ghClient.createTag({
-    nextTag: await versioningClient.next(baseVersion),
+    nextTag: await versioningClient.next(version),
     onPreTagCreate: async (tag) => {
       await versioningClient.update(tag);
     },
   });
-}
-
-function parseCiEnv(ciEnv: Record<string, string | undefined>) {
-  const githubAppAppId = (() => {
-    const v = ciEnv["_GITHUB_APP_APP_ID"];
-    if (!v) {
-      throw new Error("Missing _GITHUB_APP_APP_ID from env");
-    }
-    return v;
-  })();
-
-  const githubAppInstallationId = (() => {
-    const v = ciEnv["_GITHUB_APP_INSTALLATION_ID"];
-    if (!v) {
-      throw new Error("Missing _GITHUB_APP_INSTALLATION_ID from env");
-    }
-    return v;
-  })();
-
-  const githubAppPrivateKey = (() => {
-    const v = ciEnv["_GITHUB_APP_PEM_CONTENT"];
-    if (!v) {
-      throw new Error("Missing _GITHUB_APP_PRIVATE_KEY from env");
-    }
-    return v;
-  })();
-
-  return { githubAppAppId, githubAppInstallationId, githubAppPrivateKey };
 }
 
 main()

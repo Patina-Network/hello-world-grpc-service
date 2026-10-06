@@ -11,7 +11,8 @@ use tracing::info;
 use crate::{
     config::Config,
     db::GreetingsRepository,
-    grpc::{GreeterService, GreeterServiceServer, metrics::GrpcRequestMetricsMiddleware},
+    grpc::greeter::{GreeterService, GreeterServiceServer},
+    grpc::metrics::GrpcRequestMetricsMiddleware,
     http::{router, state::AppState},
 };
 
@@ -63,17 +64,24 @@ async fn main() -> anyhow::Result<()> {
     let greeter_repo = Arc::new(GreetingsRepository::new());
 
     let grpc_greeter_svc = GreeterService::new(greeter_repo.clone());
+    let (grpc_health_reporter, grpc_health_svc) = tonic_health::server::health_reporter();
+    grpc_health_reporter
+        .set_serving::<GreeterServiceServer<GreeterService>>()
+        .await;
+    grpc_health_reporter
+        .set_service_status("", tonic_health::ServingStatus::Serving)
+        .await;
     let (grpc_reflection_svc, grpc_reflection_svc2) = if config.grpc_reflection {
         (
             Some(
                 tonic_reflection::server::Builder::configure()
-                    .register_encoded_file_descriptor_set(grpc::FILE_DESCRIPTOR_SET)
+                    .register_encoded_file_descriptor_set(grpc::greeter::FILE_DESCRIPTOR_SET)
                     .build_v1()
                     .context("failed to build v1 gRPC reflection service")?,
             ),
             Some(
                 tonic_reflection::server::Builder::configure()
-                    .register_encoded_file_descriptor_set(grpc::FILE_DESCRIPTOR_SET)
+                    .register_encoded_file_descriptor_set(grpc::greeter::FILE_DESCRIPTOR_SET)
                     .build_v1alpha()
                     .context("failed to build v1alpha gRPC reflection service")?,
             ),
@@ -92,6 +100,7 @@ async fn main() -> anyhow::Result<()> {
         Server::builder()
             .layer(grpc_panic_layer)
             .layer(MiddlewareLayer::new(GrpcRequestMetricsMiddleware))
+            .add_service(grpc_health_svc)
             .add_service(GreeterServiceServer::new(grpc_greeter_svc))
             .add_optional_service(grpc_reflection_svc)
             .add_optional_service(grpc_reflection_svc2)

@@ -3,7 +3,12 @@ import { $ } from "bun";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-import { getShortSha } from "../utils";
+import {
+  ARCHITECTURES,
+  dockerRepository,
+  requiredEnv,
+  shortSha,
+} from "../consts";
 
 const { getGhaOutput, githubOutputFile, arch } = await yargs(
   hideBin(process.argv),
@@ -20,113 +25,48 @@ const { getGhaOutput, githubOutputFile, arch } = await yargs(
     default: process.env.GITHUB_OUTPUT,
   })
   .option("arch", {
-    choices: ["amd64", "arm64"] as const,
-    describe: "Docker build architecture",
+    choices: ARCHITECTURES,
+    describe:
+      "Target architecture, built natively on a matching runner. arm64 pushes to a separate -arm repository",
     default: "amd64" as const,
   })
   .strict()
   .parse();
 
-const dockerRepository =
-  arch === "arm64"
-    ? "hello-world-grpc-service-arm"
-    : "hello-world-grpc-service";
-const platforms = [`linux/${arch}`];
-
 async function main() {
-  const {
-    dockerHubPat,
-    dockerHubUsername,
-    githubAppAppId,
-    githubAppInstallationId,
-    githubAppPrivateKey,
-  } = parseCiEnv(process.env);
-
-  const gitSha = await getShortSha(await $`git rev-parse HEAD`.text());
+  const short = shortSha(await $`git rev-parse HEAD`.text());
+  const tags = ["latest", short];
 
   await using dockerClient = await DockerClient.create(
-    dockerHubUsername,
-    dockerHubPat,
+    requiredEnv("DOCKER_HUB_USERNAME"),
+    requiredEnv("DOCKER_HUB_PAT"),
   );
 
-  const tags = [`latest`, `${gitSha}`];
-
-  console.log("Building image with following tags:");
-  tags.forEach((tag) => console.log(tag));
-
   await dockerClient.buildImage({
-    dockerRepository,
+    dockerRepository: dockerRepository(arch),
     dockerFileLocation: "Dockerfile",
     tags,
-    shouldUpload: true,
-    platforms,
+    platforms: [`linux/${arch}`],
   });
 
-  console.log("Image pushed successfully.");
-
   if (getGhaOutput && githubOutputFile) {
-    const githubClient = await GitHubClient.createWithGithubAppToken({
-      appId: githubAppAppId,
-      installationId: githubAppInstallationId,
-      privateKey: githubAppPrivateKey,
+    const ghClient = await GitHubClient.createWithGithubAppToken({
+      appId: requiredEnv("_GITHUB_APP_APP_ID"),
+      installationId: requiredEnv("_GITHUB_APP_INSTALLATION_ID"),
+      privateKey: requiredEnv("_GITHUB_APP_PEM_CONTENT"),
     });
-    await githubClient.outputToGithubOutput({
+    await ghClient.outputToGithubOutput({
       overrideGithubOutputFile: githubOutputFile,
-      ctx: {
-        tag: gitSha,
-      },
+      ctx: { tag: short },
     });
   }
 }
 
-function parseCiEnv(ciEnv: Record<string, string | undefined>) {
-  const dockerHubPat = (() => {
-    const v = ciEnv["DOCKER_HUB_PAT"];
-    if (!v) {
-      throw new Error("Missing DOCKER_HUB_PAT from env");
-    }
-    return v;
-  })();
-
-  const dockerHubUsername = (() => {
-    const v = ciEnv["DOCKER_HUB_USERNAME"];
-    if (!v) {
-      throw new Error("Missing DOCKER_HUB_USERNAME from env");
-    }
-    return v;
-  })();
-
-  const githubAppAppId = (() => {
-    const v = ciEnv["_GITHUB_APP_APP_ID"];
-    if (!v) {
-      throw new Error("Missing _GITHUB_APP_APP_ID from env");
-    }
-    return v;
-  })();
-
-  const githubAppInstallationId = (() => {
-    const v = ciEnv["_GITHUB_APP_INSTALLATION_ID"];
-    if (!v) {
-      throw new Error("Missing _GITHUB_APP_INSTALLATION_ID from env");
-    }
-    return v;
-  })();
-
-  const githubAppPrivateKey = (() => {
-    const v = ciEnv["_GITHUB_APP_PEM_CONTENT"];
-    if (!v) {
-      throw new Error("Missing _GITHUB_APP_PEM_CONTENT from env");
-    }
-    return v;
-  })();
-
-  return {
-    dockerHubPat,
-    dockerHubUsername,
-    githubAppAppId,
-    githubAppInstallationId,
-    githubAppPrivateKey,
-  };
-}
-
-void main();
+main()
+  .then(() => {
+    process.exit(0);
+  })
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
