@@ -2,25 +2,24 @@ import { SonarScannerClient } from "@tahminator/pipeline";
 import { $ } from "bun";
 
 import { exclusions } from "../../../../exclusions";
+import { requiredEnv, SONAR_ORGANIZATION, SONAR_PROJECT_KEY } from "../consts";
 
 async function main() {
-  const { sonarToken } = parseCiEnv(process.env);
-
   const sonarClient = new SonarScannerClient({
     auth: {
-      token: sonarToken,
+      token: requiredEnv("SONAR_TOKEN"),
     },
     scan: {
       additionalArgs: {
         "rust.lcov.reportPaths": "./lcov.info",
         exclusions: `${exclusions}`,
       },
-      organization: "patina-network",
+      organization: SONAR_ORGANIZATION,
       sourceCodeDir: "./",
-      projectKey: "Patina-Network_hello-world-grpc-service",
+      projectKey: SONAR_PROJECT_KEY,
     },
     run: {
-      runTestsCmd: $`cargo clippy --message-format=json > clippy-report.json && cargo tarpaulin --out lcov`,
+      runTestsCmd: $`cargo clippy --locked --all-targets --message-format=json > clippy-report.json && cargo tarpaulin --locked --out lcov`,
     },
   });
 
@@ -28,16 +27,11 @@ async function main() {
   await sonarClient.uploadTestCoverage();
 }
 
-function parseCiEnv(ciEnv: Record<string, string | undefined>) {
-  const sonarToken = (() => {
-    const v = ciEnv["SONAR_TOKEN"];
-    if (!v) {
-      throw new Error("Missing SONAR_TOKEN from env");
-    }
-    return v;
-  })();
-
-  return { sonarToken };
-}
-
-void main();
+main()
+  .then(() => {
+    process.exit(0);
+  })
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });

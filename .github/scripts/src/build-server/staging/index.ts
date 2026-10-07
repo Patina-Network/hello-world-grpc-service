@@ -2,127 +2,74 @@ import { DockerClient, GitHubClient } from "@tahminator/pipeline";
 import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
-import { getShortSha } from "../../utils";
+import {
+  ARCHITECTURES,
+  dockerRepository,
+  GITHUB_OWNER,
+  GITHUB_REPOSITORY,
+  requiredEnv,
+  shortSha,
+} from "../../consts";
 
 const { sha, prId, arch } = await yargs(hideBin(process.argv))
   .option("sha", {
     type: "string",
+    describe: "Full commit SHA the image is built from",
     demandOption: true,
   })
   .option("prId", {
     type: "number",
+    describe: "Pull request to comment the pushed tags on",
     demandOption: true,
   })
   .option("arch", {
-    choices: ["amd64", "arm64"] as const,
-    describe: "Docker build architecture",
+    choices: ARCHITECTURES,
+    describe:
+      "Target architecture, built natively on a matching runner. arm64 pushes to a separate -arm repository",
     default: "amd64" as const,
   })
   .strict()
   .parse();
 
-const tagPrefix = "staging-";
-const dockerRepository =
-  arch === "arm64"
-    ? "hello-world-grpc-service-arm"
-    : "hello-world-grpc-service";
-const platforms = [`linux/${arch}`];
-
 async function main() {
-  const {
-    dockerHubPat,
-    dockerHubUsername,
-    githubAppAppId,
-    githubAppInstallationId,
-    githubAppPrivateKey,
-  } = parseCiEnv(process.env);
+  const dockerHubUsername = requiredEnv("DOCKER_HUB_USERNAME");
+  const repository = dockerRepository(arch);
+  const image = `${dockerHubUsername}/${repository}`;
+  const tags = [`staging-${shortSha(sha)}`];
 
   await using dockerClient = await DockerClient.create(
     dockerHubUsername,
-    dockerHubPat,
+    requiredEnv("DOCKER_HUB_PAT"),
   );
 
-  const shortSha = await getShortSha(sha);
-  const tags = [`${tagPrefix}${shortSha}`];
-
-  console.log("Building image with following tags:");
-  tags.forEach((tag) => console.log(tag));
-
   await dockerClient.buildImage({
-    dockerRepository,
+    dockerRepository: repository,
     dockerFileLocation: "Dockerfile",
     tags,
-    shouldUpload: true,
-    platforms,
+    platforms: [`linux/${arch}`],
   });
 
-  console.log("Image pushed successfully.");
-
-  const githubClient = await GitHubClient.createWithGithubAppToken({
-    appId: githubAppAppId,
-    installationId: githubAppInstallationId,
-    privateKey: githubAppPrivateKey,
+  const ghClient = await GitHubClient.createWithGithubAppToken({
+    appId: requiredEnv("_GITHUB_APP_APP_ID"),
+    installationId: requiredEnv("_GITHUB_APP_INSTALLATION_ID"),
+    privateKey: requiredEnv("_GITHUB_APP_PEM_CONTENT"),
   });
-
-  await githubClient.sendPrMessage({
+  await ghClient.sendPrMessage({
     prId,
-    owner: "Patina-Network",
-    repository: "hello-world-grpc-service",
-    message: `The gRPC server image has been uploaded to https://hub.docker.com/r/patinanetwork/${dockerRepository}/tags under the following tags:
+    owner: GITHUB_OWNER,
+    repository: GITHUB_REPOSITORY,
+    message: `The gRPC server image has been uploaded to https://hub.docker.com/r/${image}/tags under the following tags:
 
-${tags.map((t) => `- \`${dockerRepository}:${t}\``).join("\n")}
+${tags.map((t) => `- \`${repository}:${t}\``).join("\n")}
 `,
   });
 }
 
-function parseCiEnv(ciEnv: Record<string, string | undefined>) {
-  const dockerHubPat = (() => {
-    const v = ciEnv["DOCKER_HUB_PAT"];
-    if (!v) {
-      throw new Error("Missing DOCKER_HUB_PAT from env");
-    }
-    return v;
-  })();
-
-  const dockerHubUsername = (() => {
-    const v = ciEnv["DOCKER_HUB_USERNAME"];
-    if (!v) {
-      throw new Error("Missing DOCKER_HUB_USERNAME from env");
-    }
-    return v;
-  })();
-
-  const githubAppAppId = (() => {
-    const v = ciEnv["_GITHUB_APP_APP_ID"];
-    if (!v) {
-      throw new Error("Missing _GITHUB_APP_APP_ID from env");
-    }
-    return v;
-  })();
-
-  const githubAppInstallationId = (() => {
-    const v = ciEnv["_GITHUB_APP_INSTALLATION_ID"];
-    if (!v) {
-      throw new Error("Missing _GITHUB_APP_INSTALLATION_ID from env");
-    }
-    return v;
-  })();
-
-  const githubAppPrivateKey = (() => {
-    const v = ciEnv["_GITHUB_APP_PEM_CONTENT"];
-    if (!v) {
-      throw new Error("Missing _GITHUB_APP_PEM_CONTENT from env");
-    }
-    return v;
-  })();
-
-  return {
-    dockerHubPat,
-    dockerHubUsername,
-    githubAppAppId,
-    githubAppInstallationId,
-    githubAppPrivateKey,
-  };
-}
-
-void main();
+main()
+  .then(() => {
+    process.exit(0);
+  })
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });

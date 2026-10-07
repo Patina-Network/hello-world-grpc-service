@@ -29,13 +29,13 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # so we can reach latest commit before tag
           fetch-depth: 2
 
       - name: Setup Pipeline
-        uses: tahminator/pipeline/actions/setup@07fc9d27be126e0e9905af56e5d1b74440592626 # 1.0.89
+        uses: tahminator/pipeline/actions/setup@8601c1c7d28289879772574a60fe817fb953eeee # 1.0.93
         with:
           SECRETS: ${{ toJSON(secrets) }}
 
@@ -57,10 +57,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Pipeline
-        uses: tahminator/pipeline/actions/setup@07fc9d27be126e0e9905af56e5d1b74440592626 # 1.0.89
+        uses: tahminator/pipeline/actions/setup@8601c1c7d28289879772574a60fe817fb953eeee # 1.0.93
         with:
           SECRETS: ${{ toJSON(secrets) }}
 
@@ -75,10 +75,10 @@ jobs:
 
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup Pipeline
-        uses: tahminator/pipeline/actions/setup@07fc9d27be126e0e9905af56e5d1b74440592626 # 1.0.89
+        uses: tahminator/pipeline/actions/setup@8601c1c7d28289879772574a60fe817fb953eeee # 1.0.93
         with:
           SECRETS: ${{ toJSON(secrets) }}
           HEADSCALE_ADDRESS: ${{ secrets.HEADSCALE_ADDRESS }}
