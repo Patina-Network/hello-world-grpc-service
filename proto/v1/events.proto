@@ -1,0 +1,15 @@
+syntax = "proto3";
+package members;
+
+import "v1/members.proto";
+
+option go_package = "patinanetwork.org/grpc/members-grpc-service;members";
+option java_package = "org.patinanetwork.grpc.members.v1";
+option java_multiple_files = true;
+
+// Published after a successful core-admin write. Not RPC methods.
+message MemberCreated { Member member = 1; }
+
+message MemberUpdated { Member member = 1; }
+
+message MemberArchived { Member member = 1; }
