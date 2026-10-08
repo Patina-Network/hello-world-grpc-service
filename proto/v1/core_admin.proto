@@ -1,0 +1,77 @@
+syntax = "proto3";
+package members.admin;
+
+import "v1/members.proto";
+
+option go_package = "patinanetwork.org/grpc/members-grpc-service/admin;admin";
+option java_package = "org.patinanetwork.grpc.members.admin.v1";
+option java_multiple_files = true;
+
+// Accepted from a core-admin only. Other Patina apps are rejected.
+service CoreAdminService {
+  // Fails when the email or discord_id is already in use.
+  rpc createMember(CreateMemberRequest) returns (CreateMemberResponse);
+
+  rpc updateMember(UpdateMemberRequest) returns (UpdateMemberResponse);
+
+  rpc updateProfile(UpdateProfileRequest) returns (UpdateProfileResponse);
+
+  // Sets archived_at. Does not delete the member.
+  rpc archiveMember(ArchiveMemberRequest) returns (ArchiveMemberResponse);
+
+  // Creates a member when the email is new, and updates the member when the
+  // email already exists.
+  rpc importMembers(ImportMembersRequest) returns (ImportMembersResponse);
+}
+
+message CreateMemberRequest {
+  string email = 1;
+  string first_name = 2;
+  string last_name = 3;
+  optional string join_date = 4;
+  optional string discord_id = 5;
+  optional string discord_username = 6;
+}
+
+message CreateMemberResponse { members.Member member = 1; }
+
+// Unset fields are left unchanged.
+// Set discord_id to "" to unlink the member's Discord account.
+message UpdateMemberRequest {
+  string member_id = 1;
+  optional string email = 2;
+  optional string join_date = 3;
+  optional string discord_id = 4;
+}
+
+message UpdateMemberResponse { members.Member member = 1; }
+
+// Unset fields are left unchanged.
+// Set discord_username to "" to clear it. Names cannot be cleared.
+message UpdateProfileRequest {
+  string member_id = 1;
+  optional string first_name = 2;
+  optional string last_name = 3;
+  optional string discord_username = 4;
+}
+
+message UpdateProfileResponse { members.Member member = 1; }
+
+message ArchiveMemberRequest { string member_id = 1; }
+
+message ArchiveMemberResponse { members.Member member = 1; }
+
+message ImportMembersRequest { repeated CreateMemberRequest members = 1; }
+
+message ImportMemberResult {
+  string email = 1;
+  oneof result {
+    members.Member member = 2;
+    string error = 3;
+  }
+  // False when the row updated a member that already existed.
+  // Only meaningful when result is member.
+  bool created = 4;
+}
+
+message ImportMembersResponse { repeated ImportMemberResult results = 1; }
