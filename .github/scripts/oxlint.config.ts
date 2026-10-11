@@ -1,5 +1,6 @@
-import shared from "@Patina-Network/cicd-config/oxlint" with { type: "json" };
+import shared from "@Patina-Network/cicd-config/oxlint";
+import { defineConfig } from "oxlint";
 
-export default {
+export default defineConfig({
   ...shared,
-};
+});
